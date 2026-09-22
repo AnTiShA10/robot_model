@@ -1,0 +1,525 @@
+<title>Pametni Dom</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  :root {
+    --bg: #111318;
+    --surface: rgba(255,255,255,0.055);
+    --surface-hover: rgba(255,255,255,0.09);
+    --border: rgba(255,255,255,0.09);
+    --text: rgba(255,255,255,0.92);
+    --text-dim: rgba(255,255,255,0.42);
+    --accent: rgba(255,255,255,0.08);
+    --radius: 18px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--bg);
+    font-family: 'Inter', system-ui, sans-serif;
+    color: var(--text);
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  #app {
+    display: grid;
+    grid-template-columns: 1fr 1fr 160px;
+    grid-template-rows: 1fr;
+    gap: 10px;
+    padding: 10px;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  /* ── LEFT: ROOMS ── */
+  #rooms {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: repeat(4, 1fr);
+    gap: 8px;
+  }
+
+  .room-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 12px 14px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  .room-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .room-btn.on::before {
+    opacity: 1;
+  }
+
+  .room-btn-name {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    position: relative;
+    z-index: 1;
+  }
+
+  .room-btn-status {
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 2px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ── CENTER: ROBOT ── */
+  #center {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  #model-wrap {
+    flex: 1;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: #1a1c22;
+    border: 1px solid var(--border);
+    position: relative;
+  }
+
+  #model-wrap iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+  }
+
+  #robot-status {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  .status-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+  }
+
+  .status-label {
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .status-value {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    margin-top: 1px;
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #4caf50;
+    flex-shrink: 0;
+  }
+
+  .status-dot.warn { background: #f44336; }
+  .status-dot.ok { background: #4caf50; }
+
+  .sep {
+    width: 1px;
+    height: 28px;
+    background: var(--border);
+    flex-shrink: 0;
+  }
+
+  /* ── RIGHT: WEATHER + CALENDAR ── */
+  #right {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  #weather-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  #weather-icon { font-size: 32px; line-height: 1; }
+  #weather-temp {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin-top: 4px;
+  }
+
+  #clock {
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    margin-top: 6px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  #calendar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 8px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .cal-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 8px;
+    border-radius: 10px;
+    transition: background 0.2s;
+  }
+
+  .cal-row.today {
+    background: rgba(255,255,255,0.12);
+  }
+
+  .cal-day {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-dim);
+    width: 32px;
+    letter-spacing: 0.03em;
+  }
+
+  .cal-row.today .cal-day { color: var(--text); }
+
+  .cal-date {
+    font-size: 13px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+  }
+
+  /* HOLD PRESS SUPPORT */
+  .room-btn { touch-action: manipulation; }
+</style>
+
+<div id="app">
+  <!-- LEFT -->
+  <div id="rooms">
+    <div class="room-btn" data-entity="light.boravak" data-lights='["light.dnevni_boravak_1","light.dnevni_boravak_3","light.dnevni_boravak_4","light.dnevni_boravak_5","light.dnevni_boravak_6","light.dnevni_boravak_9"]' data-color="255,167,38">
+      <div class="room-btn-name">Boravak</div>
+      <div class="room-btn-status">Učitavam…</div>
+    </div>
+    <div class="room-btn" data-entity="light.kuhinja" data-lights='["light.kuhinja_1","light.kuhinja_4"]' data-color="102,187,106">
+      <div class="room-btn-name">Kuhinja</div>
+      <div class="room-btn-status">Učitavam…</div>
+    </div>
+    <div class="room-btn" data-entity="light.spavaca_soba_grupa" data-lights='["light.spavaca_1","light.spavaca_3","light.spavaca_4","light.spavaca_5","light.spavaca_soba_6"]' data-color="171,71,188">
+      <div class="room-btn-name">Spavaća</div>
+      <div class="room-btn-status">Učitavam…</div>
+    </div>
+    <div class="room-btn" data-entity="light.studio_grupa" data-lights='["light.0xe8ca50de09f50000","light.studio_2","light.stdstudio_3","light.studio_4"]' data-color="38,198,218">
+      <div class="room-btn-name">Studio</div>
+      <div class="room-btn-status">Učitavam…</div>
+    </div>
+    <div class="room-btn" data-entity="light.hodnik_11" data-lights='["light.hodnik_1","light.hodnik_2","light.hodnik_3","light.hodnik_4","light.hodnik_5","light.hodnik_6","light.hodnik_7","light.hodnik_8","light.hodnik_9","light.hodnik_10"]' data-color="255,213,79">
+      <div class="room-btn-name">Hodnik</div>
+      <div class="room-btn-status">Učitavam…</div>
+    </div>
+    <div class="room-btn" data-entity="light.veseraj_grupa" data-lights='["light.veseraj_1","light.veseraj_2","light.veseraj_3","light.veseraj_4","light.veseraj_5","light.veseraj_6","light.veseraj_7","light.veseraj_8"]' data-color="41,182,246">
+      <div class="room-btn-name">Vešeraj</div>
+      <div class="room-btn-status">Učitavam…</div>
+    </div>
+    <div class="room-btn" id="btn-kupaona"
+      data-entity="switch.0x54ef4410003ab24e_left"
+      data-hold-entity="switch.0x54ef4410003ab24e_right"
+      data-color="77,182,172">
+      <div class="room-btn-name">Kupaona</div>
+      <div class="room-btn-status">Učitavam…</div>
+    </div>
+    <div class="room-btn" data-entity="switch.wc" data-color="144,164,174">
+      <div class="room-btn-name">WC</div>
+      <div class="room-btn-status">Učitavam…</div>
+    </div>
+  </div>
+
+  <!-- CENTER -->
+  <div id="center">
+    <div id="model-wrap">
+      <iframe
+        src="https://antisha10.github.io/robot_model/bosko_standalone2.html"
+        title="Boško 3D"
+        allow="accelerometer; gyroscope"
+        scrolling="no"
+      ></iframe>
+    </div>
+    <div id="robot-status">
+      <div class="status-item">
+        <div>
+          <div class="status-label">Voda</div>
+          <div class="status-value" id="water-val">–</div>
+        </div>
+        <div class="status-dot ok" id="water-dot"></div>
+      </div>
+      <div class="sep"></div>
+      <div class="status-item">
+        <div>
+          <div class="status-label">Mop pad</div>
+          <div class="status-value" id="mop-val">–</div>
+        </div>
+      </div>
+      <div class="sep"></div>
+      <div class="status-item">
+        <div>
+          <div class="status-label">Status</div>
+          <div class="status-value" id="robot-val">–</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div id="right">
+    <div id="weather-panel">
+      <div id="weather-icon">–</div>
+      <div id="weather-temp">–°C</div>
+      <div id="clock">--:--</div>
+    </div>
+    <div id="calendar"></div>
+  </div>
+</div>
+
+<script>
+const HA = 'http://homeassistant.local:8123';
+const TOK = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIwMjgwN2I0ZWQ3Y2U0OTk2YmJjNGY0NzM5NzE4MDgzMCIsImlhdCI6MTc5MDAzNjM1OCwiZXhwIjoyMTA1Mzk2MzU4fQ.RbftL1dhKpbH_be4X_oYEZqduDhUuX63VsTtMjUbUwo';
+const OWM_KEY = '8438e82195a3859a6704e2b2e0964df9';
+
+// ── CLOCK ──
+function updateClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  document.getElementById('clock').textContent = h + ':' + m;
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+// ── CALENDAR ──
+function buildCalendar() {
+  const cal = document.getElementById('calendar');
+  const days = ['NED','PON','UTO','SRI','ČET','PET','SUB'];
+  const now = new Date();
+  const todayDow = now.getDay();
+  const todayDate = now.getDate();
+  // Show Mon–Sun of current week
+  // Find Monday of this week
+  const monday = new Date(now);
+  const diff = (todayDow === 0) ? -6 : 1 - todayDow;
+  monday.setDate(now.getDate() + diff);
+
+  let html = '';
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    const dow = days[d.getDay()];
+    const date = d.getDate();
+    const isToday = (d.getDate() === todayDate && d.getMonth() === now.getMonth());
+    html += `<div class="cal-row${isToday?' today':''}">
+      <span class="cal-day">${dow}</span>
+      <span class="cal-date">${date}</span>
+    </div>`;
+  }
+  cal.innerHTML = html;
+}
+buildCalendar();
+
+// ── WEATHER ──
+const WX_ICONS = {
+  '01d':'☀️','01n':'🌙','02d':'⛅','02n':'⛅',
+  '03d':'☁️','03n':'☁️','04d':'☁️','04n':'☁️',
+  '09d':'🌧️','09n':'🌧️','10d':'🌦️','10n':'🌧️',
+  '11d':'⛈️','11n':'⛈️','13d':'❄️','13n':'❄️','50d':'🌫️','50n':'🌫️'
+};
+
+async function fetchWeather() {
+  try {
+    const r = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=Zagreb&appid=${OWM_KEY}&units=metric`);
+    const d = await r.json();
+    const temp = Math.round(d.main.temp);
+    const icon = WX_ICONS[d.weather[0].icon] || '🌡️';
+    document.getElementById('weather-temp').textContent = temp + '°C';
+    document.getElementById('weather-icon').textContent = icon;
+  } catch(e) {}
+}
+fetchWeather();
+setInterval(fetchWeather, 10 * 60 * 1000);
+
+// ── HA API ──
+async function haGet(entity) {
+  try {
+    const r = await fetch(`${HA}/api/states/${entity}`, {
+      headers: { Authorization: 'Bearer ' + TOK }
+    });
+    return await r.json();
+  } catch { return null; }
+}
+
+async function haToggle(domain, entity) {
+  try {
+    await fetch(`${HA}/api/services/${domain}/toggle`, {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + TOK, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entity_id: entity })
+    });
+  } catch {}
+}
+
+// ── ROOMS ──
+function applyRoomState(btn, state, color) {
+  const isOn = (state === 'on');
+  const status = btn.querySelector('.room-btn-status');
+  status.textContent = isOn ? 'Gori' : 'Ugašeno';
+  if (isOn) {
+    btn.classList.add('on');
+    btn.style.borderColor = `rgba(${color},0.45)`;
+    btn.style.boxShadow = `0 0 0 0px transparent, 0 8px 32px -8px rgba(${color},0.5), inset 0 1px 0 rgba(255,255,255,0.1)`;
+    btn.style.setProperty('--glow-color', color);
+    btn.querySelector('::before'); // trigger
+    btn.style.background = `radial-gradient(ellipse 90% 60% at 50% 100%, rgba(${color},0.13) 0%, rgba(255,255,255,0.055) 70%)`;
+  } else {
+    btn.classList.remove('on');
+    btn.style.borderColor = '';
+    btn.style.boxShadow = 'inset 0 1px 0 rgba(255,255,255,0.08)';
+    btn.style.background = '';
+  }
+}
+
+async function updateRoom(btn) {
+  const entity = btn.dataset.entity;
+  const color = btn.dataset.color || '255,255,255';
+  const data = await haGet(entity);
+  if (data) applyRoomState(btn, data.state, color);
+}
+
+async function refreshRooms() {
+  const btns = document.querySelectorAll('.room-btn');
+  await Promise.all([...btns].map(b => updateRoom(b)));
+}
+
+// Hold press logic
+let holdTimer = null;
+document.querySelectorAll('.room-btn').forEach(btn => {
+  const toggle = async () => {
+    const entity = btn.dataset.entity;
+    const domain = entity.startsWith('light') ? 'light' : 'switch';
+    await haToggle(domain, entity);
+    setTimeout(() => updateRoom(btn), 400);
+  };
+
+  const holdAction = async () => {
+    const holdEntity = btn.dataset.holdEntity;
+    if (!holdEntity) return toggle();
+    const domain = holdEntity.startsWith('light') ? 'light' : 'switch';
+    await haToggle(domain, holdEntity);
+    setTimeout(() => updateRoom(btn), 400);
+  };
+
+  // Touch
+  btn.addEventListener('touchstart', e => {
+    holdTimer = setTimeout(() => { holdTimer = null; holdAction(); }, 500);
+  }, { passive: true });
+  btn.addEventListener('touchend', e => {
+    if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; toggle(); }
+  });
+  btn.addEventListener('touchmove', () => { if(holdTimer){ clearTimeout(holdTimer); holdTimer=null; } }, { passive: true });
+
+  // Mouse
+  btn.addEventListener('mousedown', () => {
+    holdTimer = setTimeout(() => { holdTimer = null; holdAction(); }, 500);
+  });
+  btn.addEventListener('mouseup', () => {
+    if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; toggle(); }
+  });
+});
+
+// ── ROBOT STATUS ──
+const MOP_EMOJI = {
+  'clean': '🟢', 'Clean': '🟢',
+  'light_dirty': '🟡', 'Light Dirty': '🟡',
+  'dirty': '🔴', 'Dirty': '🔴',
+};
+
+async function updateRobot() {
+  const [water, mop, robot] = await Promise.all([
+    haGet('binary_sensor.bosko_low_water_warning'),
+    haGet('sensor.bosko_mop_pad'),
+    haGet('vacuum.bosko')
+  ]);
+
+  if (water) {
+    const low = water.state === 'on';
+    document.getElementById('water-val').textContent = low ? 'Nisko!' : 'Puno';
+    const dot = document.getElementById('water-dot');
+    dot.className = 'status-dot ' + (low ? 'warn' : 'ok');
+  }
+  if (mop) {
+    const s = mop.state;
+    const emoji = MOP_EMOJI[s] || '❓';
+    document.getElementById('mop-val').textContent = emoji + ' ' + s;
+  }
+  if (robot) {
+    const labels = {
+      'cleaning':'Usisava','docked':'Na punjaču','idle':'Slobodan',
+      'paused':'Pauza','returning':'Vraća se','error':'Greška!'
+    };
+    document.getElementById('robot-val').textContent = labels[robot.state] || robot.state;
+  }
+}
+
+// Init
+refreshRooms();
+updateRobot();
+setInterval(refreshRooms, 30000);
+setInterval(updateRobot, 30000);
+</script>
